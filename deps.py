@@ -18,7 +18,7 @@ def get_db():
 
 DB = Annotated[Session, Depends(get_db)]
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 Token = Annotated[str, Depends(oauth2_scheme)]
 
 def get_current_user(db: DB, token: Token) -> models.User:
