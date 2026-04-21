@@ -25,13 +25,14 @@ class AuthScaffold extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    'Car Booking',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      letterSpacing: 2,
+                  Center(
+                    child: Image.asset(
+                      'assets/logo.png',
+                      width: 140,
+                      fit: BoxFit.contain,
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 20),
                   Text(title, style: theme.textTheme.displaySmall),
                   const SizedBox(height: 10),
                   Text(

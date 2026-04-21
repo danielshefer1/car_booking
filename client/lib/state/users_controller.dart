@@ -23,6 +23,13 @@ class UsersController extends AsyncNotifier<List<User>> {
     ]);
     return updated;
   }
+
+  Future<void> delete(int userId) async {
+    await ref.read(usersRepositoryProvider).delete(userId);
+    state = AsyncValue.data(
+      (state.value ?? const []).where((u) => u.id != userId).toList(),
+    );
+  }
 }
 
 final usersControllerProvider =
