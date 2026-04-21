@@ -8,12 +8,17 @@ from security import hash_password
 # --- USER CRUD ---
 def create_user(db: Session, user_in: schemas.UserCreate):
     hashed_pw = hash_password(user_in.password)
-    
+
     user_data = user_in.model_dump()
     user_data.pop("password")
-    
-    db_user = models.User(**user_data, hashed_password=hashed_pw)
-    
+
+    is_first_user = db.query(models.User).count() == 0
+    db_user = models.User(
+        **user_data,
+        hashed_password=hashed_pw,
+        permissions="admin" if is_first_user else "user",
+    )
+
     try:
         db.add(db_user)
         db.commit()
@@ -30,6 +35,44 @@ def delete_user(db: Session, user_id: int):
     db.delete(db_user)
     db.commit()
     return {"detail": "User deleted"}
+
+def update_user(db: Session, user_id: int, update: schemas.UserUpdate):
+    db_user = db.get(models.User, user_id)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    data = update.model_dump(exclude_unset=True)
+    if "password" in data:
+        db_user.hashed_password = hash_password(data.pop("password"))
+    for field, value in data.items():
+        setattr(db_user, field, value)
+    try:
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Phone number already registered.")
+
+ROLE_RANK = {"user": 0, "elevated": 1, "admin": 2}
+
+
+def set_user_permissions(db: Session, user_id: int, permissions: str):
+    if permissions not in ROLE_RANK:
+        raise HTTPException(status_code=400, detail="Invalid role")
+    db_user = db.get(models.User, user_id)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    current_rank = ROLE_RANK.get(db_user.permissions, 0)
+    new_rank = ROLE_RANK[permissions]
+    if new_rank <= current_rank:
+        raise HTTPException(
+            status_code=400,
+            detail=f"User is already {db_user.permissions}; promotions must raise the role.",
+        )
+    db_user.permissions = permissions
+    db.commit()
+    db.refresh(db_user)
+    return db_user
 
 # --- CAR CRUD ---
 def create_car(db: Session, car_in: schemas.CarCreate):

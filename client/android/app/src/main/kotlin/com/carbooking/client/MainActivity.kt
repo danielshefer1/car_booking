@@ -1,0 +1,5 @@
+package com.carbooking.client
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity()

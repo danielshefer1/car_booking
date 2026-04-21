@@ -45,8 +45,28 @@ def get_current_user(db: DB, token: Token) -> models.User:
 
     # Fetch the user from the DB using the 'sub' (email) from the token
     user = db.query(models.User).filter(models.User.email == email).first()
-    
+
     if user is None:
         raise credentials_exception
-        
+
     return user
+
+
+def require_admin(current_user: "models.User" = Depends(get_current_user)) -> "models.User":
+    if current_user.permissions != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required",
+        )
+    return current_user
+
+
+def require_elevated_or_admin(
+    current_user: "models.User" = Depends(get_current_user),
+) -> "models.User":
+    if current_user.permissions not in ("elevated", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Elevated or admin privileges required",
+        )
+    return current_user

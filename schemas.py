@@ -1,5 +1,8 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from datetime import datetime
+from typing import Literal, Optional
+
+Role = Literal["user", "elevated", "admin"]
 
 # BOOKING START
 # -------------
@@ -16,7 +19,22 @@ class BookingCreate(BookingBase):
 class BookingSchema(BookingBase):
     id: int
     user_id: int
-    
+
+    model_config = ConfigDict(from_attributes=True)
+
+class BookingUserInfo(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    phone_number: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class BookingWithUser(BookingBase):
+    id: int
+    user_id: int
+    user: BookingUserInfo
+
     model_config = ConfigDict(from_attributes=True)
 # -------------
 # -------------
@@ -38,8 +56,15 @@ class UserCreate(UserBase):
 
 class UserSchema(UserBase):
     id: int
-    
+    permissions: str
+
     model_config = ConfigDict(from_attributes=True)
+
+class UserUpdate(BaseModel):
+    first_name: Optional[str] = Field(default=None, min_length=1)
+    last_name: Optional[str] = Field(default=None, min_length=1)
+    phone_number: Optional[str] = Field(default=None, min_length=1)
+    password: Optional[str] = Field(default=None, min_length=1)
 # -------------
 # -------------
 # -------------
@@ -64,6 +89,9 @@ class CarSchema(CarBase):
 # -------------
 # -------------
 # -------------
+
+class UserRolePromotion(BaseModel):
+    role: Literal["elevated", "admin"]
 
 class Token(BaseModel):
     access_token: str

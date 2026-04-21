@@ -26,6 +26,17 @@ def list_user_bookings(db: DB, current_user: models.User = Depends(get_current_u
     return bookings
 
 
+@router.get("/all", response_model=List[schemas.BookingWithUser])
+def list_all_bookings(db: DB, _: models.User = Depends(get_current_user)):
+    """Get every booking across all users, with booker info embedded."""
+    bookings = (
+        db.query(models.Booking)
+        .options(joinedload(models.Booking.user))
+        .all()
+    )
+    return bookings
+
+
 @router.get("/{booking_id}", response_model=schemas.BookingSchema)
 def get_booking(booking_id: int, db: DB, current_user: models.User = Depends(get_current_user)):
     """Get a specific booking (user can only see their own bookings)"""

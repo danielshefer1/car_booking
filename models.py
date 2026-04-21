@@ -25,6 +25,7 @@ class User(Base):
     phone_number: Mapped[str] = mapped_column(unique=True, nullable=False)
     email: Mapped[str] = mapped_column(unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column(nullable=False)
+    permissions: Mapped[str] = mapped_column(nullable=False, default="user")
 
     bookings: Mapped[List["Booking"]] = relationship(back_populates="user")
 
